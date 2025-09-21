@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de App de Saúde: Controle de Dados</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+        :root {
+            --primary-color: #007bff;
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+            --light-gray: #f8f9fa;
+            --medium-gray: #e9ecef;
+            --dark-gray: #6c757d;
+            --text-color: #212529;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--light-gray);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .phone-frame {
+            width: 375px;
+            height: 720px;
+            background-color: #111;
+            border-radius: 40px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 0 5px #000;
+        }
+
+        .screen {
+            background-color: #fff;
+            width: 100%;
+            height: 100%;
+            border-radius: 25px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        header.app-header {
+            background-color: #fff;
+            color: var(--text-color);
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: 500;
+            flex-shrink: 0;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+
+        .tabs { display: flex; border-bottom: 1px solid var(--medium-gray); }
+        .tab-button {
+            flex: 1; padding: 12px 10px; border: none; background-color: transparent;
+            cursor: pointer; font-size: 0.9em; font-weight: 500; color: var(--dark-gray);
+            border-bottom: 3px solid transparent; transition: all 0.3s ease;
+        }
+        .tab-button.active.bad { color: var(--danger-color); border-bottom-color: var(--danger-color); }
+        .tab-button.active.good { color: var(--success-color); border-bottom-color: var(--success-color); }
+        
+        .app-content { flex-grow: 1; padding: 15px; background-color: var(--light-gray); }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+
+        /* --- Estilos das Configurações --- */
+        .settings-group {
+            background-color: #fff;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            border: 1px solid var(--medium-gray);
+        }
+        .settings-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid var(--medium-gray);
+            cursor: pointer;
+        }
+        .settings-item:last-child { border-bottom: none; }
+        .settings-item.danger { color: var(--danger-color); }
+        .settings-item .chevron { color: var(--dark-gray); }
+
+        /* --- Modal de Exclusão --- */
+        .modal-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6); display: none;
+            justify-content: center; align-items: center; z-index: 100;
+        }
+        .modal-content {
+            background-color: white; border-radius: 12px; width: 90%;
+            padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .modal-content h3 { margin-top: 0; text-align: center; }
+        .modal-content p { font-size: 0.9em; line-height: 1.5; color: var(--dark-gray); }
+        .modal-content input {
+            width: calc(100% - 22px); padding: 10px; margin-top: 10px;
+            border: 1px solid var(--medium-gray); border-radius: 6px;
+        }
+        .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
+        .modal-button {
+            flex: 1; padding: 12px; border: none; border-radius: 8px;
+            font-size: 1em; font-weight: 500; cursor: pointer;
+        }
+        .cancel-btn { background-color: var(--medium-gray); }
+        .delete-btn { background-color: var(--danger-color); color: white; }
+        .delete-btn:disabled { background-color: #f5b7bd; cursor: not-allowed; }
+
+        /* Anotações Explicativas */
+        .annotation { padding: 12px; margin-top: 25px; font-size: 0.85em; border-radius: 5px; line-height: 1.5; }
+        .annotation.bad { background-color: #f8d7da; border-left: 4px solid var(--danger-color); }
+        .annotation.good { background-color: #d4edda; border-left: 4px solid var(--success-color); }
+
+    </style>
+</head>
+<body>
+
+    <div class="phone-frame">
+        <div class="screen">
+            <header class="app-header">Configurações</header>
+            
+            <div class="tabs">
+                <button class="tab-button active bad" onclick="showTab('bad-ux')">Exemplo Ruim (Sem Controle)</button>
+                <button class="tab-button good" onclick="showTab('good-ux')">Exemplo Bom (Controle Total)</button>
+            </div>
+
+            <main class="app-content">
+
+                <div id="bad-ux" class="content-section active">
+                    <div class="settings-group">
+                        <div class="settings-item"><span>Editar Perfil</span> <span class="chevron">></span></div>
+                        <div class="settings-item"><span>Alterar Senha</span> <span class="chevron">></span></div>
+                        <div class="settings-item"><span>Gerenciar Notificações</span> <span class="chevron">></span></div>
+                    </div>
+                    <div class="settings-group">
+                        <div class="settings-item"><span>Sobre</span> <span class="chevron">></span></div>
+                        <div class="settings-item"><span>Ajuda</span> <span class="chevron">></span></div>
+                    </div>
+                    <div class="annotation bad">
+                        <strong>Ponto de Análise (Violação do Direito de Exclusão):</strong> O app armazena dados de saúde sensíveis, mas não oferece ao usuário uma forma de excluir sua conta e suas informações. Isso cria uma "prisão de dados", violando o direito fundamental do titular de apagar seus dados quando desejar.
+                    </div>
+                </div>
+
+                <div id="good-ux" class="content-section">
+                    <div class="settings-group">
+                        <div class="settings-item"><span>Editar Perfil</span> <span class="chevron">></span></div>
+                        <div class="settings-item"><span>Alterar Senha</span> <span class="chevron">></span></div>
+                        <div class="settings-item"><span>Gerenciar Notificações</span> <span class="chevron">></span></div>
+                    </div>
+                    <div class="settings-group">
+                        <div class="settings-item danger" onclick="openDeleteModal()">
+                            <span><strong>Excluir Conta e Dados</strong></span>
+                            <span class="chevron">></span>
+                        </div>
+                    </div>
+                     <div class="annotation good">
+                        <strong>Ponto de Análise (Direito de Exclusão Garantido):</strong> O app oferece uma opção clara para o usuário excluir seus dados. O processo exige uma confirmação explícita para evitar exclusões acidentais, o que representa uma boa prática de UX e garante que o controle final permaneça com o usuário, como determina a lei.
+                    </div>
+                </div>
+            </main>
+            
+            <div class="modal-overlay" id="delete-modal">
+                <div class="modal-content">
+                    <h3>Você tem certeza?</h3>
+                    <p>Esta ação é <strong>irreversível</strong>. Todos os seus dados de saúde (histórico, consultas, exames) serão excluídos permanentemente.</p>
+                    <p>Para confirmar, digite "EXCLUIR" abaixo:</p>
+                    <input type="text" id="confirm-input" placeholder="EXCLUIR" oninput="validateDeletion()">
+                    <div class="modal-buttons">
+                        <button class="modal-button cancel-btn" onclick="closeDeleteModal()">Cancelar</button>
+                        <button class="modal-button delete-btn" id="final-delete-btn" disabled onclick="confirmDeletion()">Excluir Permanentemente</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const deleteModal = document.getElementById('delete-modal');
+        const confirmInput = document.getElementById('confirm-input');
+        const finalDeleteBtn = document.getElementById('final-delete-btn');
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.tab-button[onclick*="'${tabId}'"]`).classList.add('active');
+            
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function openDeleteModal() {
+            deleteModal.style.display = 'flex';
+        }
+
+        function closeDeleteModal() {
+            deleteModal.style.display = 'none';
+            confirmInput.value = ''; // Limpa o campo ao fechar
+            validateDeletion(); // Desabilita o botão novamente
+        }
+
+        function validateDeletion() {
+            finalDeleteBtn.disabled = confirmInput.value !== 'EXCLUIR';
+        }
+        
+        function confirmDeletion() {
+            if (confirmInput.value === 'EXCLUIR') {
+                alert('Conta e dados foram excluídos com sucesso.');
+                closeDeleteModal();
+            }
+        }
+        
+        showTab('bad-ux'); // Inicia na primeira aba
+    </script>
+</body>
+</html>

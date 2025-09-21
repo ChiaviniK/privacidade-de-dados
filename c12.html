@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Mascaramento de Dados</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Inconsolata&display=swap');
+
+        :root {
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+            --primary-color: #007bff;
+            --light-gray: #f8f9fa;
+            --medium-gray: #e9ecef;
+            --dark-gray: #6c757d;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--light-gray);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .desktop-frame {
+            width: 700px;
+            background-color: #fff;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        header.window-header {
+            background-color: #f1f1f1; padding: 8px 12px;
+            border-bottom: 1px solid #ccc;
+            border-top-left-radius: 8px; border-top-right-radius: 8px;
+            font-size: 0.9em; color: #333;
+        }
+
+        .tabs { display: flex; background-color: #f7f7f7; border-bottom: 1px solid #ddd; }
+        .tab-button {
+            flex: 1; padding: 10px; border: none; background: none; cursor: pointer;
+            font-size: 0.9em; font-weight: 500; color: var(--dark-gray);
+            border-bottom: 3px solid transparent;
+        }
+        .tab-button.active.bad { color: var(--danger-color); border-bottom-color: var(--danger-color); }
+        .tab-button.active.good { color: var(--success-color); border-bottom-color: var(--success-color); }
+
+        .app-content { flex-grow: 1; padding: 20px; font-size: 0.9em; }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+        
+        .data-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+        }
+        
+        .data-box { width: 48%; }
+        .data-box h4 { margin-top: 0; text-align: center; }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            text-align: left;
+        }
+        th { background-color: #f2f2f2; }
+        
+        .pii-exposed { background-color: #f8d7da; color: #721c24; font-weight: bold; }
+        .pii-masked { background-color: #d4edda; color: #155724; font-weight: bold; }
+        
+        .arrow {
+            font-size: 3em;
+            color: var(--dark-gray);
+            margin-top: 50px;
+        }
+
+        .annotation { padding: 12px; margin-top: 25px; font-size: 0.95em; border-radius: 5px; line-height: 1.5; }
+        .annotation.bad { background-color: #f8d7da; border-left: 4px solid var(--danger-color); }
+        .annotation.good { background-color: #d4edda; border-left: 4px solid var(--success-color); }
+    </style>
+</head>
+<body>
+
+    <div class="desktop-frame">
+        <header class="window-header">Ferramenta de Análise de Dados</header>
+        
+        <div class="tabs">
+            <button class="tab-button active bad" onclick="showTab('bad')">Relatório Incorreto (Dados Reais)</button>
+            <button class="tab-button good" onclick="showTab('good')">Relatório Correto (Dados Mascarados)</button>
+        </div>
+
+        <main class="app-content">
+
+            <div id="bad" class="content-section active">
+                <div class="data-container">
+                    <div class="data-box">
+                        <h4>📄 Fonte de Dados Interna</h4>
+                        <table>
+                            <tr><th>Nome</th><th>CPF</th><th>Valor_Gasto</th></tr>
+                            <tr><td>Ana Silva</td><td>111.222...</td><td>R$ 520</td></tr>
+                            <tr><td>Bruno Costa</td><td>333.444...</td><td>R$ 715</td></tr>
+                        </table>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="data-box">
+                        <h4>📤 Relatório para Parceiro</h4>
+                        <table>
+                            <tr><th>Nome</th><th>CPF</th><th>Valor_Gasto</th></tr>
+                            <tr><td class="pii-exposed">Ana Silva</td><td class="pii-exposed">111.222...</td><td>R$ 520</td></tr>
+                            <tr><td class="pii-exposed">Bruno Costa</td><td class="pii-exposed">333.444...</td><td>R$ 715</td></tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="annotation bad">
+                    <strong>Ponto de Análise (Exposição de PII):</strong> Por engano, o analista incluiu Informações de Identificação Pessoal (PII) no relatório externo. O compartilhamento de nomes e CPFs reais constitui uma violação de dados, pois expõe a identidade dos clientes e aumenta o risco de fraude e uso indevido.
+                </div>
+            </div>
+
+            <div id="good" class="content-section">
+                <div class="data-container">
+                    <div class="data-box">
+                        <h4>📄 Fonte de Dados Interna</h4>
+                        <table>
+                           <tr><th>Nome</th><th>CPF</th><th>Valor_Gasto</th></tr>
+                           <tr><td>Ana Silva</td><td>111.222...</td><td>R$ 520</td></tr>
+                           <tr><td>Bruno Costa</td><td>333.444...</td><td>R$ 715</td></tr>
+                        </table>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="data-box">
+                        <h4>📤 Relatório para Parceiro</h4>
+                         <table>
+                            <tr><th>Cliente_ID</th><th>Valor_Gasto</th></tr>
+                            <tr><td class="pii-masked">CLI-8472</td><td>R$ 520</td></tr>
+                            <tr><td class="pii-masked">CLI-9153</td><td>R$ 715</td></tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="annotation good">
+                    <strong>Ponto de Análise (Pseudonimização e Minimização):</strong> O analista aplicou técnicas de mascaramento. Nomes e CPFs foram substituídos por um ID não identificável (pseudônimo) e dados desnecessários foram removidos (minimização). O relatório continua útil para análise, mas sem expor a identidade de nenhum cliente.
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.tab-button[onclick*="'${tabId}'"]`).classList.add('active');
+            
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+        }
+        
+        showTab('bad'); // Inicia na primeira aba
+    </script>
+</body>
+</html>

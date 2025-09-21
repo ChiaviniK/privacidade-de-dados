@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Website: Transparência na Coleta de Dados</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+        :root {
+            --primary-color: #6f42c1; /* Roxo para newsletter/marca */
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+            --light-gray: #f8f9fa;
+            --medium-gray: #e9ecef;
+            --dark-gray: #495057;
+            --text-color: #212529;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--light-gray);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
+
+        .phone-frame {
+            width: 375px;
+            height: 720px;
+            background-color: #111;
+            border-radius: 40px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 0 5px #000;
+        }
+
+        .screen {
+            background-color: #fff;
+            width: 100%;
+            height: 100%;
+            border-radius: 25px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header.app-header {
+            background-color: #fff;
+            color: var(--text-color);
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: 700;
+            flex-shrink: 0;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+
+        .tabs {
+            display: flex;
+            background-color: #f7f7f7;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 12px 10px;
+            border: none;
+            background-color: transparent;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            color: var(--dark-gray);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+        }
+        
+        .app-content {
+            flex-grow: 1;
+            background-color: #ffffff;
+            overflow-y: auto;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+        
+        /* --- Estilos do Formulário de Newsletter --- */
+        .newsletter-box {
+            background-color: var(--light-gray);
+            padding: 30px 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--medium-gray);
+        }
+        
+        .newsletter-box h2 {
+            margin-top: 0;
+            font-size: 1.5em;
+            color: var(--text-color);
+        }
+        
+        .newsletter-box p {
+            color: var(--dark-gray);
+            margin-bottom: 20px;
+        }
+        
+        .newsletter-box input[type="email"] {
+            width: calc(100% - 22px);
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid var(--medium-gray);
+            border-radius: 8px;
+            font-size: 1em;
+        }
+        
+        .subscribe-button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .subscribe-button:disabled {
+            background-color: #bca0e4;
+            cursor: not-allowed;
+        }
+        
+        /* Exemplo Bom */
+        .consent-label {
+            display: flex;
+            align-items: start;
+            text-align: left;
+            font-size: 0.8em;
+            color: var(--dark-gray);
+            margin-top: 15px;
+        }
+        
+        .consent-label input {
+            margin-right: 8px;
+            margin-top: 3px;
+        }
+        
+        .consent-label a {
+            color: var(--primary-color);
+        }
+
+        /* Anotações Explicativas */
+        .annotation {
+            background-color: #fff9e6;
+            border: 1px solid #ffde8c;
+            border-left: 4px solid #ffad1f;
+            padding: 12px;
+            margin-top: 25px;
+            font-size: 0.85em;
+            border-radius: 5px;
+            line-height: 1.5;
+            text-align: left;
+        }
+        
+        .annotation strong {
+            color: #d98200;
+        }
+        
+        .annotation.good {
+            background-color: #e9f7ec;
+            border: 1px solid #a6d9b3;
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .annotation.good strong {
+            color: #155724;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="phone-frame">
+        <div class="screen">
+            <header class="app-header">
+                Blog de Tecnologia
+            </header>
+            
+            <div class="tabs">
+                <button class="tab-button active" onclick="showTab('bad-example')">Exemplo Ruim (Sem Transparência)</button>
+                <button class="tab-button" onclick="showTab('good-example')">Exemplo Bom (Com Transparência)</button>
+            </div>
+
+            <main class="app-content">
+
+                <div id="bad-example" class="content-section active">
+                    <div class="newsletter-box">
+                        <h2>Assine nossa Newsletter!</h2>
+                        <p>Fique por dentro das novidades.</p>
+                        <input type="email" placeholder="seuemail@exemplo.com">
+                        <button class="subscribe-button">Inscrever-se</button>
+                    </div>
+                    <div class="annotation">
+                        <strong>Ponto de Análise (Falta de Transparência):</strong> O formulário é vago. O usuário não sabe:
+                        <ul>
+                            <li><strong>O quê?</strong> Que tipo de "novidades" irá receber?</li>
+                            <li><strong>Quando?</strong> Qual a frequência dos e-mails?</li>
+                            <li><strong>Para quê?</strong> O e-mail será usado para outros fins, como marketing de parceiros?</li>
+                        </ul>
+                        Isso viola o <strong>princípio da finalidade e da transparência</strong>, pois a coleta não tem um propósito claro e informado.
+                    </div>
+                </div>
+
+                <div id="good-example" class="content-section">
+                    <div class="newsletter-box">
+                        <h2>Assine nossa Newsletter!</h2>
+                        <p>Receba análises e notícias de tecnologia toda sexta-feira no seu e-mail. Sem spam!</p>
+                        <input type="email" placeholder="seuemail@exemplo.com">
+                        <label class="consent-label">
+                            <input type="checkbox" id="consent-checkbox" onchange="toggleButton()">
+                            <span>Eu li e concordo com a <a href="#">Política de Privacidade</a> e autorizo o uso do meu e-mail para esta finalidade.</span>
+                        </label>
+                        <button class="subscribe-button" id="subscribe-btn-good" disabled>Inscrever-se</button>
+                    </div>
+                    <div class="annotation good">
+                        <strong>Ponto de Análise (Transparência e Consentimento):</strong> Este formulário é eficaz porque:
+                        <ul>
+                            <li><strong>Finalidade Clara:</strong> Informa o conteúdo ("análises e notícias") e a frequência ("toda sexta-feira").</li>
+                            <li><strong>Transparência:</strong> Garante "Sem spam", aumentando a confiança.</li>
+                            <li><strong>Consentimento Explícito:</strong> Exige uma ação do usuário (marcar a caixa) para consentir, com acesso fácil à Política de Privacidade. O botão só é ativado após o aceite (boa prática de UX).</li>
+                        </ul>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        const consentCheckbox = document.getElementById('consent-checkbox');
+        const subscribeBtnGood = document.getElementById('subscribe-btn-good');
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
+            document.querySelector(`.tab-button[onclick="showTab('${tabId}')"]`).classList.add('active');
+            
+            document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function toggleButton() {
+            subscribeBtnGood.disabled = !consentCheckbox.checked;
+        }
+
+        // Initialize the first tab
+        showTab('bad-example');
+    </script>
+</body>
+</html>

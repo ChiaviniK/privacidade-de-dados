@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Acesso a Pasta Compartilhada</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Inconsolata&display=swap');
+
+        :root {
+            --primary-color: #17a2b8;
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+            --light-gray: #f8f9fa;
+            --medium-gray: #e9ecef;
+            --dark-gray: #6c757d;
+            --text-color: #212529;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--light-gray);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .desktop-frame {
+            width: 550px;
+            height: 450px;
+            background-color: #fff;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        header.window-header {
+            background-color: #f1f1f1;
+            padding: 8px 12px;
+            border-bottom: 1px solid #ccc;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            font-size: 0.9em;
+            color: #333;
+        }
+
+        .tabs { display: flex; background-color: #f7f7f7; border-bottom: 1px solid #ddd; }
+        .tab-button {
+            flex: 1; padding: 10px; border: none; background: none; cursor: pointer;
+            font-size: 0.9em; font-weight: 500; color: var(--dark-gray);
+            border-bottom: 3px solid transparent;
+        }
+        .tab-button.active.bad { color: var(--danger-color); border-bottom-color: var(--danger-color); }
+        .tab-button.active.good { color: var(--success-color); border-bottom-color: var(--success-color); }
+
+        .app-content { flex-grow: 1; padding: 15px; font-size: 0.9em; }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+        
+        .address-bar {
+            background-color: #fff; border: 1px solid #ddd; padding: 5px 8px;
+            border-radius: 4px; margin-bottom: 15px; font-family: 'Inconsolata', monospace;
+        }
+
+        .file-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 15px; margin-bottom: 20px;
+        }
+        .file-item { text-align: center; cursor: pointer; }
+        .file-item .icon { font-size: 3em; }
+        .file-item .name { font-size: 0.9em; word-wrap: break-word; }
+        .file-item.denied .icon { color: #ccc; }
+        .file-item.denied .name { color: #999; text-decoration: line-through;}
+
+        .user-switcher { margin-bottom: 15px; }
+        .user-switcher button {
+            padding: 5px 10px; border: 1px solid #ccc; border-radius: 4px;
+            margin-right: 5px; cursor: pointer;
+        }
+        .user-switcher button.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+        .annotation { padding: 12px; font-size: 0.95em; border-radius: 5px; line-height: 1.5; }
+        .annotation.bad { background-color: #f8d7da; border-left: 4px solid var(--danger-color); }
+        .annotation.good { background-color: #d4edda; border-left: 4px solid var(--success-color); }
+    </style>
+</head>
+<body>
+
+    <div class="desktop-frame">
+        <header class="window-header">Explorador de Arquivos</header>
+        
+        <div class="tabs">
+            <button class="tab-button active bad" onclick="showTab('bad')">Exemplo Ruim (Acesso Total)</button>
+            <button class="tab-button good" onclick="showTab('good')">Exemplo Bom (Acesso Restrito)</button>
+        </div>
+
+        <main class="app-content">
+
+            <div id="bad" class="content-section active">
+                <div class="address-bar">\\SERVIDOR\Compartilhado\</div>
+                <p>Logado como: <strong>Estagiário de Marketing</strong></p>
+                <div class="file-grid">
+                    <div class="file-item"><div class="icon">📁</div><div class="name">Marketing</div></div>
+                    <div class="file-item"><div class="icon">📁</div><div class="name">Recursos Humanos</div></div>
+                    <div class="file-item" style="border: 2px solid var(--danger-color); border-radius: 8px; padding: 5px;">
+                        <div class="icon">📂</div><div class="name">FINANCEIRO_CLIENTES</div>
+                    </div>
+                </div>
+                <div class="annotation bad">
+                    <strong>Ponto de Análise (Falta de Controle de Acesso):</strong> Qualquer funcionário, independentemente da sua função, pode acessar dados financeiros sensíveis. Isso viola o "Princípio do Menor Privilégio" e cria um risco enorme de vazamento de dados acidental, mau uso intencional ou fraude.
+                </div>
+            </div>
+
+            <div id="good" class="content-section">
+                <div class="address-bar">\\SERVIDOR\Compartilhado\</div>
+                <div class="user-switcher">
+                    <strong>Ver como:</strong>
+                    <button id="btn-estagiario" class="active" onclick="switchUserView('estagiario')">Estagiário de Marketing</button>
+                    <button id="btn-gerente" onclick="switchUserView('gerente')">Gerente Financeiro</button>
+                </div>
+
+                <div id="view-estagiario">
+                    <div class="file-grid">
+                        <div class="file-item"><div class="icon">📁</div><div class="name">Marketing</div></div>
+                        <div class="file-item"><div class="icon">📁</div><div class="name">Recursos Humanos</div></div>
+                        <div class="file-item denied"><div class="icon">🚫</div><div class="name">FINANCEIRO_CLIENTES</div></div>
+                    </div>
+                </div>
+                
+                <div id="view-gerente" style="display: none;">
+                    <div class="file-grid">
+                        <div class="file-item"><div class="icon">📁</div><div class="name">Marketing</div></div>
+                        <div class="file-item"><div class="icon">📁</div><div class="name">Recursos Humanos</div></div>
+                        <div class="file-item"><div class="icon">📂</div><div class="name">FINANCEIRO_CLIENTES</div></div>
+                    </div>
+                </div>
+
+                <div class="annotation good">
+                    <strong>Ponto de Análise (Acesso Baseado em Função):</strong> O acesso é concedido com base na necessidade do cargo. O estagiário vê apenas o que é relevante para seu trabalho, enquanto o gerente financeiro tem o acesso necessário. Isso minimiza drasticamente os riscos de segurança e está em conformidade com as melhores práticas de proteção de dados.
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.tab-button[onclick*="'${tabId}'"]`).classList.add('active');
+            
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function switchUserView(role) {
+            const estagiarioView = document.getElementById('view-estagiario');
+            const gerenteView = document.getElementById('view-gerente');
+            const btnEstagiario = document.getElementById('btn-estagiario');
+            const btnGerente = document.getElementById('btn-gerente');
+
+            if (role === 'estagiario') {
+                estagiarioView.style.display = 'block';
+                gerenteView.style.display = 'none';
+                btnEstagiario.classList.add('active');
+                btnGerente.classList.remove('active');
+            } else {
+                estagiarioView.style.display = 'none';
+                gerenteView.style.display = 'block';
+                btnEstagiario.classList.remove('active');
+                btnGerente.classList.add('active');
+            }
+        }
+        
+        showTab('bad'); // Inicia na primeira aba
+    </script>
+</body>
+</html>

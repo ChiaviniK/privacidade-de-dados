@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Portal Escolar: Acesso Seguro a Dados</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+        :root {
+            --primary-color: #0056b3; /* Azul escuro para ambiente escolar/corporativo */
+            --secondary-color: #007bff;
+            --light-gray: #f8f9fa;
+            --medium-gray: #e9ecef;
+            --dark-gray: #495057;
+            --text-color: #212529;
+            --success-color: #28a745;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--light-gray);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
+
+        .phone-frame {
+            width: 375px;
+            height: 720px;
+            background-color: #111;
+            border-radius: 40px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 0 5px #000;
+        }
+
+        .screen {
+            background-color: #fff;
+            width: 100%;
+            height: 100%;
+            border-radius: 25px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header.app-header {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: 500;
+            flex-shrink: 0;
+            position: relative;
+        }
+        
+        .logout-button {
+            position: absolute;
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2em;
+            cursor: pointer;
+            display: none; /* Oculto por padrão */
+        }
+
+        .app-content {
+            flex-grow: 1;
+            background-color: #ffffff;
+            overflow-y: auto;
+            padding: 25px;
+        }
+        
+        .view { display: none; }
+        .view.active { display: block; }
+        
+        /* --- Estilos da Tela de Login --- */
+        .login-view h2 {
+            text-align: center;
+            color: var(--text-color);
+        }
+        .login-view p {
+            text-align: center;
+            color: var(--dark-gray);
+            margin-bottom: 30px;
+        }
+        .login-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .professor-btn { background-color: var(--secondary-color); }
+        .aluno-btn { background-color: var(--success-color); }
+
+        /* --- Estilos das Telas de Dashboard --- */
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid var(--medium-gray);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .list-item-info strong {
+            display: block;
+            color: var(--text-color);
+        }
+        .list-item-info span {
+            font-size: 0.9em;
+            color: var(--dark-gray);
+        }
+        
+        .action-button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            background-color: var(--secondary-color);
+            color: white;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        
+        /* Boletim do Aluno */
+        .grade-item {
+            justify-content: space-between;
+        }
+        .grade-item .grade {
+            font-weight: 700;
+            font-size: 1.1em;
+            color: var(--primary-color);
+        }
+        
+        /* Anotações Explicativas */
+        .annotation {
+            background-color: #e6f7ff;
+            border: 1px solid #91d5ff;
+            border-left: 4px solid #1890ff;
+            padding: 12px;
+            margin-top: 25px;
+            font-size: 0.85em;
+            border-radius: 5px;
+            line-height: 1.5;
+            text-align: left;
+        }
+        
+        .annotation strong {
+            color: #0056b3;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="phone-frame">
+        <div class="screen">
+            <header class="app-header">
+                <button class="logout-button" onclick="logout()">←</button>
+                <span id="header-title">Portal Acadêmico</span>
+            </header>
+            
+            <main class="app-content">
+
+                <div id="login-view" class="view active">
+                    <h2>Bem-vindo(a)!</h2>
+                    <p>Acesse o sistema para continuar.</p>
+                    
+                    <button class="login-button professor-btn" onclick="loginAs('professor')">Acessar como Professor</button>
+                    <button class="login-button aluno-btn" onclick="loginAs('aluno')">Acessar como Pai/Aluno</button>
+                    
+                    <div class="annotation">
+                        <strong>Ponto de Análise (Segurança de Acesso):</strong> O acesso ao banco de dados é protegido por um sistema de login. Isso garante que apenas usuários autenticados possam acessar as informações, prevenindo acessos externos não autorizados. O banco de dados em si é seguro e criptografado.
+                    </div>
+                </div>
+
+                <div id="professor-view" class="view">
+                    <h3>Minhas Turmas</h3>
+                    <div class="list-item">
+                        <div class="list-item-info">
+                            <strong>Matemática - 8º Ano A</strong>
+                            <span>32 alunos</span>
+                        </div>
+                        <button class="action-button">Lançar/Ver Notas</button>
+                    </div>
+                    <div class="list-item">
+                        <div class="list-item-info">
+                            <strong>Física - 9º Ano B</strong>
+                            <span>28 alunos</span>
+                        </div>
+                        <button class="action-button">Lançar/Ver Notas</button>
+                    </div>
+                     <div class="annotation">
+                        <strong>Ponto de Análise (Acesso Autorizado e Limitado):</strong> O professor tem permissão para acessar e modificar as notas, mas <strong>apenas das suas próprias turmas</strong>. Ele não pode ver dados de outras turmas ou informações administrativas. Isso é o Controle de Acesso Baseado em Função.
+                    </div>
+                </div>
+                
+                <div id="aluno-view" class="view">
+                    <h3>Boletim de Ana Silva</h3>
+                    <div class="list-item grade-item">
+                        <div class="list-item-info">
+                            <strong>Matemática</strong>
+                            <span>Prof. Carlos</span>
+                        </div>
+                        <span class="grade">8.5</span>
+                    </div>
+                     <div class="list-item grade-item">
+                        <div class="list-item-info">
+                            <strong>Português</strong>
+                            <span>Profa. Maria</span>
+                        </div>
+                        <span class="grade">9.0</span>
+                    </div>
+                     <div class="list-item grade-item">
+                        <div class="list-item-info">
+                            <strong>História</strong>
+                            <span>Prof. João</span>
+                        </div>
+                        <span class="grade">7.5</span>
+                    </div>
+                     <div class="annotation">
+                        <strong>Ponto de Análise (Princípio do Menor Privilégio):</strong> O pai ou aluno tem acesso de <strong>apenas leitura</strong> e somente às informações que lhe dizem respeito. Ele não pode ver as notas de outros alunos nem acessar funções de edição. O acesso é o mínimo necessário para a sua finalidade.
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <script>
+        const loginView = document.getElementById('login-view');
+        const professorView = document.getElementById('professor-view');
+        const alunoView = document.getElementById('aluno-view');
+        const headerTitle = document.getElementById('header-title');
+        const logoutButton = document.querySelector('.logout-button');
+
+        function loginAs(role) {
+            loginView.classList.remove('active');
+            logoutButton.style.display = 'block';
+
+            if (role === 'professor') {
+                professorView.classList.add('active');
+                headerTitle.textContent = 'Portal do Professor';
+            } else if (role === 'aluno') {
+                alunoView.classList.add('active');
+                headerTitle.textContent = 'Portal do Aluno';
+            }
+        }
+        
+        function logout() {
+            professorView.classList.remove('active');
+            alunoView.classList.remove('active');
+            loginView.classList.add('active');
+            headerTitle.textContent = 'Portal Acadêmico';
+            logoutButton.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

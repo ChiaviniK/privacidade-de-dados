@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Risco em Wi-Fi Público</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Inconsolata&display=swap');
+
+        :root {
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+            --light-gray: #f8f9fa;
+            --medium-gray: #e9ecef;
+            --dark-gray: #6c757d;
+            --text-color: #212529;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--light-gray);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .phone-frame {
+            width: 375px;
+            height: 720px;
+            background-color: #111;
+            border-radius: 40px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 0 5px #000;
+        }
+
+        .screen {
+            background-color: #fff;
+            width: 100%;
+            height: 100%;
+            border-radius: 25px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header.app-header {
+            background-color: #fff;
+            color: var(--text-color);
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: 500;
+            flex-shrink: 0;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+
+        .tabs { display: flex; border-bottom: 1px solid var(--medium-gray); }
+        .tab-button {
+            flex: 1; padding: 12px 10px; border: none; background-color: transparent;
+            cursor: pointer; font-size: 0.9em; font-weight: 500; color: var(--dark-gray);
+            border-bottom: 3px solid transparent; transition: all 0.3s ease;
+        }
+        .tab-button.active.insecure { color: var(--danger-color); border-bottom-color: var(--danger-color); }
+        .tab-button.active.secure { color: var(--success-color); border-bottom-color: var(--success-color); }
+        
+        .app-content { flex-grow: 1; padding: 25px; }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+
+        /* --- Elementos da Simulação --- */
+        .wifi-status {
+            padding: 10px; border-radius: 8px; margin-bottom: 25px;
+            display: flex; align-items: center; font-weight: 500;
+        }
+        .wifi-status.insecure { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .wifi-status.secure { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .wifi-status .icon { font-size: 1.2em; margin-right: 10px; }
+
+        .login-form input {
+            width: calc(100% - 22px); padding: 12px; margin-bottom: 10px;
+            border: 1px solid var(--medium-gray); border-radius: 8px; font-size: 1em;
+        }
+        .login-button {
+            width: 100%; padding: 12px; border: none; border-radius: 8px;
+            color: white; font-size: 1.1em; font-weight: 500; cursor: pointer; margin-top: 10px;
+        }
+        .insecure-btn { background-color: var(--danger-color); }
+        .secure-btn { background-color: var(--success-color); }
+
+        /* --- Visualização da Transmissão --- */
+        .transmission-viz {
+            margin-top: 30px; text-align: center; display: none;
+        }
+        .transmission-viz .device-icon, .transmission-viz .hacker-icon {
+            font-size: 3em;
+        }
+        .transmission-viz .packet {
+            font-family: 'Inconsolata', monospace;
+            background-color: var(--light-gray); border: 1px dashed var(--dark-gray);
+            padding: 10px; margin: 5px 0; border-radius: 4px;
+            font-size: 0.9em; word-break: break-all;
+        }
+        .packet.insecure-packet { color: var(--danger-color); }
+        .packet.secure-packet { color: var(--success-color); }
+        .transmission-viz .arrow {
+            font-size: 1.5em; color: var(--dark-gray); margin: 5px 0;
+        }
+
+        /* Anotações Explicativas */
+        .annotation {
+            padding: 12px; margin-top: 25px; font-size: 0.85em; border-radius: 5px; line-height: 1.5;
+        }
+        .annotation.insecure { background-color: #f8d7da; border-left: 4px solid var(--danger-color); }
+        .annotation.secure { background-color: #d4edda; border-left: 4px solid var(--success-color); }
+        .annotation strong { color: #000; }
+
+    </style>
+</head>
+<body>
+
+    <div class="phone-frame">
+        <div class="screen">
+            <header class="app-header" id="header-title">Conexão Wi-Fi</header>
+            
+            <div class="tabs">
+                <button class="tab-button active insecure" onclick="showTab('insecure')">Wi-Fi Público (Inseguro)</button>
+                <button class="tab-button secure" onclick="showTab('secure')">Wi-Fi Seguro (Criptografado)</button>
+            </div>
+
+            <main class="app-content">
+
+                <div id="insecure" class="content-section active">
+                    <div class="wifi-status insecure"><span class="icon">🔓</span> Conectado a: CafePublico_Gratis</div>
+                    <h4>Login no MeuBanco Online</h4>
+                    <div class="login-form">
+                        <input type="text" value="ana.s" readonly>
+                        <input type="text" value="12345" readonly>
+                        <button class="login-button insecure-btn" onclick="simulateLogin(false)">Entrar</button>
+                    </div>
+                    <div id="insecure-transmission" class="transmission-viz">
+                        <div class="device-icon">📱</div>
+                        <div class="arrow">↓</div>
+                        <div class="packet insecure-packet">[user:ana.s pass:12345]</div>
+                        <div class="arrow">↓</div>
+                        <div class="hacker-icon">🕵️‍♂️... Interceptado!</div>
+                    </div>
+                    <div class="annotation insecure">
+                        <strong>Ponto de Análise (Dados Expostos):</strong> Sem criptografia, os dados são enviados como "texto plano". Qualquer pessoa na mesma rede com ferramentas simples pode "ouvir" a conexão e capturar informações sensíveis, como senhas e mensagens.
+                    </div>
+                </div>
+
+                <div id="secure" class="content-section">
+                     <div class="wifi-status secure"><span class="icon">🔒</span> Conectado a: Cafe_Seguro_WPA3</div>
+                     <h4>Login no MeuBanco Online</h4>
+                    <div class="login-form">
+                        <input type="text" value="ana.s" readonly>
+                        <input type="password" value="12345" readonly>
+                        <button class="login-button secure-btn" onclick="simulateLogin(true)">Entrar</button>
+                    </div>
+                     <div id="secure-transmission" class="transmission-viz">
+                        <div class="device-icon">📱</div>
+                        <div class="arrow">↓</div>
+                        <div class="packet secure-packet">[data:a#fG5!s7@kL9*pQ$]</div>
+                        <div class="arrow">↓</div>
+                        <div class="hacker-icon">🕵️‍♂️... ilegível!</div>
+                    </div>
+                    <div class="annotation secure">
+                        <strong>Ponto de Análise (Dados Protegidos):</strong> A criptografia (WPA2/WPA3) embaralha os dados. Mesmo que um invasor intercepte o tráfego, ele verá apenas um código indecifrável, tornando as informações pessoais e senhas inúteis para ele.
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabId) {
+            // Lógica das abas
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.tab-button[onclick*="'${tabId}'"]`).classList.add('active');
+            
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+
+            // Oculta as visualizações ao trocar de aba
+            document.getElementById('insecure-transmission').style.display = 'none';
+            document.getElementById('secure-transmission').style.display = 'none';
+        }
+
+        function simulateLogin(isSecure) {
+            if (isSecure) {
+                const viz = document.getElementById('secure-transmission');
+                viz.style.display = 'block';
+            } else {
+                const viz = document.getElementById('insecure-transmission');
+                viz.style.display = 'block';
+            }
+        }
+
+        // Inicia na primeira aba
+        showTab('insecure');
+    </script>
+</body>
+</html>

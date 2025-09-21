@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Permissões de App</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+        :root {
+            --primary-color: #333;
+            --danger-color: #e0245e;
+            --info-color: #17a2b8;
+            --light-gray: #f8f9fa;
+            --medium-gray: #e9ecef;
+            --dark-gray: #6c757d;
+            --text-color: #212529;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--light-gray);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .phone-frame {
+            width: 375px;
+            height: 720px;
+            background-color: #111;
+            border-radius: 40px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 0 5px #000;
+        }
+
+        .screen {
+            background-color: #fff;
+            width: 100%;
+            height: 100%;
+            border-radius: 25px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        header.app-header {
+            background-color: #fff;
+            color: var(--text-color);
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: 500;
+            flex-shrink: 0;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+
+        .tabs { display: flex; border-bottom: 1px solid var(--medium-gray); }
+        .tab-button {
+            flex: 1; padding: 12px 10px; border: none; background-color: transparent;
+            cursor: pointer; font-size: 0.9em; font-weight: 500; color: var(--dark-gray);
+            border-bottom: 3px solid transparent; transition: all 0.3s ease;
+        }
+        .tab-button.active { color: var(--info-color); border-bottom: 3px solid var(--info-color); }
+        
+        .app-content { flex-grow: 1; padding: 25px; }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+        
+        /* --- Estilos do App Ruim --- */
+        .flashlight-app { text-align: center; margin-top: 40px; }
+        .flashlight-icon { font-size: 5em; color: #ffc107; }
+        
+        /* --- Estilos do App Bom --- */
+        .feature-button {
+            display: block; width: 100%; text-align: left; padding: 15px;
+            margin-bottom: 10px; background-color: var(--light-gray); border: 1px solid var(--medium-gray);
+            border-radius: 8px; font-size: 1em; cursor: pointer;
+        }
+
+        /* --- Estilos dos Modais --- */
+        .modal-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5); display: none;
+            justify-content: center; align-items: center; z-index: 100;
+        }
+        .modal-content {
+            background-color: #f1f1f1; text-align: center; border-radius: 12px;
+            width: 85%; padding-top: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .modal-content.pre-permission { background-color: #fff; padding: 20px; }
+        .modal-content h3 { margin: 0 15px 5px; font-size: 1.1em; }
+        .modal-content p { margin: 0 15px 20px; font-size: 0.9em; line-height: 1.4; color: #333; }
+        .modal-buttons { display: flex; border-top: 1px solid #ccc; }
+        .modal-button {
+            flex: 1; background: none; border: none; padding: 12px;
+            font-size: 1em; cursor: pointer; color: #007aff;
+        }
+        .modal-button:first-child { border-right: 1px solid #ccc; }
+        
+        .pre-permission .icon { font-size: 2.5em; margin-bottom: 15px; color: var(--info-color); }
+        .pre-permission .continue-btn {
+            background-color: var(--info-color); color: white; border-radius: 8px;
+            width: 100%; padding: 10px; font-size: 1em; border: none; cursor: pointer;
+        }
+
+        /* Anotações Explicativas */
+        .annotation {
+            background-color: #fff3cd; border: 1px solid #ffeeba; border-left: 4px solid #ffc107;
+            padding: 12px; margin-top: 25px; font-size: 0.85em; border-radius: 5px; line-height: 1.5;
+        }
+        .annotation strong { color: #856404; }
+        .annotation.good {
+            background-color: #d1ecf1; border-color: #bee5eb; border-left-color: var(--info-color);
+        }
+        .annotation.good strong { color: #0c5460; }
+
+    </style>
+</head>
+<body>
+
+    <div class="phone-frame">
+        <div class="screen">
+            <header class="app-header" id="header-title">Lanterna Simples+</header>
+            
+            <div class="tabs">
+                <button class="tab-button active" onclick="showTab('bad-ux', 'Lanterna Simples+')">Exemplo Ruim</button>
+                <button class="tab-button" onclick="showTab('good-ux', 'Mapa Social')">Exemplo Bom</button>
+            </div>
+
+            <main class="app-content">
+
+                <div id="bad-ux" class="content-section active">
+                    <div class="flashlight-app">
+                        <div class="flashlight-icon">💡</div>
+                        <h3>Lanterna Desligada</h3>
+                    </div>
+                    <button class="feature-button" style="margin-top: 30px; text-align: center; background-color: var(--info-color); color: white;" onclick="startBadPermissions()">Abrir o app pela primeira vez</button>
+                    <div class="annotation">
+                        <strong>Ponto de Análise (Minimização de Dados):</strong> Um aplicativo de lanterna precisa de uma única permissão: acesso à câmera (para usar o flash). A solicitação de localização, contatos e microfone é excessiva, desnecessária e viola o princípio de que apenas os dados estritamente necessários para a funcionalidade devem ser coletados.
+                    </div>
+                </div>
+
+                <div id="good-ux" class="content-section">
+                    <h4>Funcionalidades</h4>
+                    <button class="feature-button" onclick="requestPermission('location')">📍 Ver amigos no mapa</button>
+                    <button class="feature-button" onclick="requestPermission('contacts')">👥 Adicionar amigos dos contatos</button>
+                    <button class="feature-button" onclick="requestPermission('mic')">🎤 Enviar mensagem de voz</button>
+                    <div class="annotation good">
+                        <strong>Ponto de Análise (Propósito Limitado):</strong> As permissões são solicitadas apenas quando o usuário tenta usar uma função que depende delas. Antes da permissão do sistema, o app explica de forma clara e amigável *por que* o acesso é necessário, demonstrando o benefício para o usuário. Isso é consentimento informado e contextual.
+                    </div>
+                </div>
+            </main>
+            
+            <div class="modal-overlay" id="modal-location">
+                <div class="modal-content">
+                    <h3>Permitir que "<span class="app-name"></span>" acesse a localização deste dispositivo?</h3>
+                    <div class="modal-buttons">
+                        <button class="modal-button" onclick="closeModal()">Não permitir</button>
+                        <button class="modal-button" onclick="closeModal()">Permitir</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-overlay" id="modal-contacts">
+                <div class="modal-content">
+                    <h3>Permitir que "<span class="app-name"></span>" acesse seus contatos?</h3>
+                    <div class="modal-buttons">
+                        <button class="modal-button" onclick="closeModal()">Não permitir</button>
+                        <button class="modal-button" onclick="closeModal()">Permitir</button>
+                    </div>
+                </div>
+            </div>
+             <div class="modal-overlay" id="modal-mic">
+                <div class="modal-content">
+                    <h3>Permitir que "<span class="app-name"></span>" grave áudio?</h3>
+                    <div class="modal-buttons">
+                        <button class="modal-button" onclick="closeModal()">Não permitir</button>
+                        <button class="modal-button" onclick="closeModal()">Permitir</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-overlay" id="pre-modal-location">
+                <div class="modal-content pre-permission">
+                    <div class="icon">📍</div>
+                    <h3>Mostrar amigos no mapa</h3>
+                    <p>Para ver onde seus amigos estão e encontrar lugares próximos, precisamos de acesso à sua localização.</p>
+                    <button class="continue-btn" onclick="showSystemPermission('location')">Continuar</button>
+                </div>
+            </div>
+             <div class="modal-overlay" id="pre-modal-contacts">
+                <div class="modal-content pre-permission">
+                    <div class="icon">👥</div>
+                    <h3>Encontre seus amigos</h3>
+                    <p>Para ajudar você a se conectar com amigos que já usam o app, precisamos acessar sua lista de contatos.</p>
+                    <button class="continue-btn" onclick="showSystemPermission('contacts')">Continuar</button>
+                </div>
+            </div>
+             <div class="modal-overlay" id="pre-modal-mic">
+                <div class="modal-content pre-permission">
+                    <div class="icon">🎤</div>
+                    <h3>Envie mensagens de voz</h3>
+                    <p>Para gravar e enviar mensagens de voz para seus amigos, precisamos de acesso ao seu microfone.</p>
+                    <button class="continue-btn" onclick="showSystemPermission('mic')">Continuar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAppName = 'Lanterna Simples+';
+
+        function showTab(tabId, appName) {
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.tab-button[onclick*="'${tabId}'"]`).classList.add('active');
+            
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+
+            document.getElementById('header-title').textContent = appName;
+            currentAppName = appName;
+        }
+        
+        // --- Lógica do Exemplo Ruim ---
+        async function startBadPermissions() {
+            await openModal('location', 500);
+            await openModal('contacts', 1800);
+            await openModal('mic', 1800);
+        }
+
+        // --- Lógica do Exemplo Bom ---
+        function requestPermission(type) {
+            document.getElementById(`pre-modal-${type}`).style.display = 'flex';
+        }
+
+        function showSystemPermission(type) {
+            // Fecha todos os modais de pré-permissão
+            document.querySelectorAll('.modal-overlay[id^="pre-"]').forEach(m => m.style.display = 'none');
+            // Abre o modal de sistema correspondente
+            openModal(type);
+        }
+
+        // --- Funções Auxiliares de Modal ---
+        function openModal(type, delay = 0) {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    const modal = document.getElementById(`modal-${type}`);
+                    // Atualiza o nome do app no modal
+                    modal.querySelectorAll('.app-name').forEach(span => span.textContent = currentAppName);
+                    modal.style.display = 'flex';
+                    // Usamos um truque para resolver a promessa quando o modal for fechado
+                    modal.onclick = (e) => {
+                        if (e.target === modal) {
+                             closeModal();
+                             resolve();
+                        }
+                    };
+                }, delay);
+            });
+        }
+        
+        function closeModal() {
+            document.querySelectorAll('.modal-overlay').forEach(modal => {
+                modal.style.display = 'none';
+            });
+        }
+    </script>
+</body>
+</html>

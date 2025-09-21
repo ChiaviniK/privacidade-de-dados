@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Transferência de Dados</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+        :root {
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+            --primary-color: #007bff;
+            --light-gray: #f8f9fa;
+            --medium-gray: #e9ecef;
+            --dark-gray: #6c757d;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--light-gray);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .desktop-frame {
+            width: 650px;
+            height: 500px;
+            background-color: #fff;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        header.window-header {
+            background-color: #f1f1f1; padding: 8px 12px;
+            border-bottom: 1px solid #ccc;
+            border-top-left-radius: 8px; border-top-right-radius: 8px;
+            font-size: 0.9em; color: #333;
+        }
+
+        .tabs { display: flex; background-color: #f7f7f7; border-bottom: 1px solid #ddd; }
+        .tab-button {
+            flex: 1; padding: 10px; border: none; background: none; cursor: pointer;
+            font-size: 0.9em; font-weight: 500; color: var(--dark-gray);
+            border-bottom: 3px solid transparent;
+        }
+        .tab-button.active.bad { color: var(--danger-color); border-bottom-color: var(--danger-color); }
+        .tab-button.active.good { color: var(--success-color); border-bottom-color: var(--success-color); }
+
+        .app-content { flex-grow: 1; padding: 20px; font-size: 0.9em; }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+        
+        .environment-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 200px;
+        }
+
+        .environment {
+            width: 45%;
+            height: 180px;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        .environment.secure { border: 2px solid var(--success-color); background-color: #d4edda; }
+        .environment.insecure { border: 2px solid var(--danger-color); background-color: #f8d7da; }
+
+        .environment h4 { margin-top: 0; }
+        .environment .icon { font-size: 3em; margin: 10px 0; }
+        .environment .file { font-size: 0.9em; background: white; padding: 5px; border-radius: 4px; display: inline-block; }
+
+        .arrow {
+            font-size: 4em;
+            color: var(--danger-color);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* Exemplo Bom */
+        .secure-portal {
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            background: #fff;
+            padding: 15px;
+            margin-top: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .secure-portal h4 { margin-top: 0; color: var(--primary-color); }
+        .secure-portal .file {
+             animation: none; /* remove a animação do arquivo estático */
+        }
+        .secure-portal strong {
+            display: block;
+            margin-top: 10px;
+            color: var(--dark-gray);
+        }
+
+        .annotation { padding: 12px; margin-top: 25px; font-size: 0.95em; border-radius: 5px; line-height: 1.5; }
+        .annotation.bad { background-color: #f8d7da; border-left: 4px solid var(--danger-color); }
+        .annotation.good { background-color: #d4edda; border-left: 4px solid var(--success-color); }
+    </style>
+</head>
+<body>
+
+    <div class="desktop-frame">
+        <header class="window-header">Ambiente de Trabalho Corporativo</header>
+        
+        <div class="tabs">
+            <button class="tab-button active bad" onclick="showTab('bad')">Ação Insegura</button>
+            <button class="tab-button good" onclick="showTab('good')">Ação Segura</button>
+        </div>
+
+        <main class="app-content">
+
+            <div id="bad" class="content-section active">
+                <div class="environment-container">
+                    <div class="environment secure">
+                        <h4>🏢 Ambiente Corporativo</h4>
+                        <div class="icon">🔒</div>
+                        <div class="file">📄 Relatorio_Financeiro.pdf</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="environment insecure">
+                        <h4>💻 Dispositivo Pessoal</h4>
+                        <div class="icon">🔓</div>
+                         <div class="file">📄 Relatorio_Financeiro.pdf</div>
+                    </div>
+                </div>
+                <div class="annotation bad">
+                    <strong>Ponto de Análise (Quebra do Perímetro de Segurança):</strong> Ao mover o arquivo para um dispositivo pessoal, o funcionário retira o dado do ambiente controlado pela empresa (com firewalls, monitoramento, etc.). O arquivo fica vulnerável a malware, perda, roubo e acesso por pessoas não autorizadas.
+                </div>
+            </div>
+
+            <div id="good" class="content-section">
+                 <div class="environment-container">
+                    <div class="environment secure">
+                        <h4>🏢 Ambiente Corporativo</h4>
+                        <div class="icon">🔒</div>
+                        <div class="file">📄 Relatorio_Financeiro.pdf</div>
+                    </div>
+                     <div class="arrow" style="color: var(--success-color); animation: none;">↔</div>
+                    <div class="environment" style="border: 2px solid #ccc; background-color: #f1f1f1;">
+                         <h4>💻 Dispositivo Pessoal</h4>
+                        <div class="icon">🛡️</div>
+                         <div>Acessando via Portal...</div>
+                    </div>
+                </div>
+                 <div class="secure-portal">
+                    <h4>↳ Acesso via Portal Seguro Corp</h4>
+                    <p>Você está visualizando <strong>Relatorio_Financeiro.pdf</strong>. As ações de download e cópia estão desabilitadas.</p>
+                    <strong>O arquivo nunca sai do servidor da empresa.</strong>
+                </div>
+                <div class="annotation good">
+                    <strong>Ponto de Análise (Prevenção de Perda de Dados):</strong> Utilizando uma solução de acesso remoto seguro (VDI, portal), o funcionário pode trabalhar com o arquivo sem transferi-lo. O dado sensível permanece protegido dentro do ambiente corporativo, eliminando o risco de vazamento pelo dispositivo pessoal.
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.tab-button[onclick*="'${tabId}'"]`).classList.add('active');
+            
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+        }
+        
+        showTab('bad'); // Inicia na primeira aba
+    </script>
+</body>
+</html>

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de App: UX e Privacidade</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+        :root {
+            --primary-color: #007bff;
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+            --light-gray: #f0f2f5;
+            --dark-gray: #4b4f56;
+            --border-color: #dddfe2;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--light-gray);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
+
+        .phone-frame {
+            width: 375px;
+            height: 720px;
+            background-color: #111;
+            border-radius: 40px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 0 5px #000;
+            position: relative;
+        }
+
+        .phone-frame::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 25px;
+            background-color: #111;
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
+            z-index: 10;
+        }
+
+        .screen {
+            background-color: #fff;
+            width: 100%;
+            height: 100%;
+            border-radius: 25px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        header.app-header {
+            background: linear-gradient(45deg, var(--primary-color), #0056b3);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+
+        .tabs {
+            display: flex;
+            background-color: #f7f7f7;
+            padding: 5px;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 12px 10px;
+            border: none;
+            background-color: transparent;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            color: var(--dark-gray);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+        }
+        
+        .app-content {
+            padding: 20px;
+            flex-grow: 1;
+            background-color: #ffffff;
+        }
+        
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        /* --- Estilos do App --- */
+        .dashboard-card {
+            background-color: #f9f9f9;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .dashboard-card h3 {
+            margin-top: 0;
+            color: var(--dark-gray);
+        }
+
+        .steps-count {
+            font-size: 3em;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 10px 0;
+        }
+
+        .subtle-notice {
+            font-size: 0.8em;
+            color: #888;
+            margin-top: 30px;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .subtle-notice a {
+            color: var(--primary-color);
+        }
+        
+        /* -- Anotações Explicativas -- */
+        .annotation {
+            background-color: #fffbe6;
+            border: 1px solid #ffe58f;
+            border-left: 4px solid #ffc107;
+            padding: 10px;
+            margin-top: 20px;
+            font-size: 0.85em;
+            border-radius: 5px;
+            line-height: 1.5;
+        }
+        
+        .annotation strong {
+            color: #d98200;
+        }
+
+        /* --- Estilos da UX ÓTIMA --- */
+        .privacy-prompt {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d7ff;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 25px;
+            text-align: center;
+        }
+        
+        .privacy-prompt p {
+            margin: 0 0 15px 0;
+            font-size: 0.95em;
+            color: var(--dark-gray);
+        }
+
+        .manage-button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        /* Modal de Privacidade */
+        .modal-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 15px;
+            width: 90%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .modal-content h3 { margin-top: 0; }
+
+        .privacy-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .privacy-option:last-child { border-bottom: none; }
+        
+        .privacy-option span {
+            font-size: 0.9em;
+            padding-right: 15px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-switch input { display: none; }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px; width: 18px;
+            left: 3px; bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider { background-color: var(--success-color); }
+        input:checked + .slider:before { transform: translateX(20px); }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .modal-button {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+        }
+        .save { background-color: var(--success-color); color: white; margin-left: 5px; }
+        .cancel { background-color: #eee; color: #333; margin-right: 5px; }
+        
+    </style>
+</head>
+<body>
+
+    <div class="phone-frame">
+        <div class="screen">
+            <header class="app-header">
+                FitTrack
+            </header>
+            
+            <div class="tabs">
+                <button class="tab-button active" onclick="showTab('bad-ux')">Exemplo de UX Ruim</button>
+                <button class="tab-button" onclick="showTab('good-ux')">Exemplo de UX Ótima</button>
+            </div>
+
+            <main class="app-content">
+
+                <div id="bad-ux" class="content-section active">
+                    <div class="dashboard-card">
+                        <h3>Passos de Hoje</h3>
+                        <div class="steps-count">8.754</div>
+                        <p>Meta: 10.000 passos</p>
+                    </div>
+
+                    <p class="subtle-notice">
+                        Ao usar o FitTrack, você concorda com nossos <a href="#">Termos de Serviço</a> e <a href="#">Política de Privacidade</a> para melhorar sua experiência.
+                    </p>
+                    
+                    <div class="annotation">
+                        <strong>Ponto de Análise (Dark Pattern):</strong> O consentimento para o compartilhamento de dados está escondido em links de "Termos de Serviço". O usuário não tem uma escolha clara e ativa. A frase "melhorar sua experiência" é vaga e não informa sobre o compartilhamento com anunciantes.
+                    </div>
+                </div>
+
+                <div id="good-ux" class="content-section">
+                     <div class="dashboard-card">
+                        <h3>Passos de Hoje</h3>
+                        <div class="steps-count">8.754</div>
+                        <p>Meta: 10.000 passos</p>
+                    </div>
+
+                    <div class="privacy-prompt">
+                        <p>Você está no controle dos seus dados. Revise suas permissões de compartilhamento a qualquer momento.</p>
+                        <button class="manage-button" onclick="openModal()">Gerenciar Privacidade</button>
+                    </div>
+                    
+                    <div class="annotation">
+                        <strong>Ponto de Análise (Privacy by Design):</strong> O controle de privacidade é apresentado de forma proativa e acessível. A linguagem é clara e empodera o usuário, tratando a privacidade como uma funcionalidade, não como algo a ser escondido.
+                    </div>
+                </div>
+            </main>
+        </div>
+        
+        <div class="modal-overlay" id="privacy-modal">
+            <div class="modal-content">
+                <h3>Sua Privacidade, Seu Controle</h3>
+                <p style="font-size: 0.9em; color: #555; margin-top: -10px; margin-bottom: 20px;">
+                    Escolha quais dados você deseja compartilhar. Suas informações de atividade nos ajudam a manter o app gratuito.
+                </p>
+                
+                <div class="privacy-option">
+                    <span>Compartilhar dados de atividade com anunciantes</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                 <div class="annotation" style="margin-bottom: 15px;">
+                    <strong>Ponto de Análise (Consentimento Granular):</strong> O usuário pode escolher especificamente o que compartilhar. O texto explica o motivo do compartilhamento (manter o app gratuito) de forma transparente. O controle (toggle) é visualmente claro e fácil de usar.
+                </div>
+                
+                <div class="modal-buttons">
+                    <button class="modal-button cancel" onclick="closeModal()">Cancelar</button>
+                    <button class="modal-button save" onclick="closeModal()">Salvar Preferências</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const contentSections = document.querySelectorAll('.content-section');
+        const privacyModal = document.getElementById('privacy-modal');
+
+        function showTab(tabId) {
+            // Botões
+            tabButtons.forEach(button => {
+                button.classList.remove('active');
+            });
+            document.querySelector(`.tab-button[onclick="showTab('${tabId}')"]`).classList.add('active');
+            
+            // Conteúdo
+            contentSections.forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function openModal() {
+            privacyModal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            privacyModal.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

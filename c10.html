@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de App de Carona: Privacidade de Dados</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Inconsolata&display=swap');
+
+        :root {
+            --primary-color: #000000;
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+            --light-gray: #f8f9fa;
+            --medium-gray: #e9ecef;
+            --dark-gray: #6c757d;
+            --text-color: #212529;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--light-gray);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .phone-frame {
+            width: 375px;
+            height: 720px;
+            background-color: #111;
+            border-radius: 40px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 0 5px #000;
+        }
+
+        .screen {
+            background-color: #fff;
+            width: 100%;
+            height: 100%;
+            border-radius: 25px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header.app-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+
+        .tabs { display: flex; border-bottom: 1px solid var(--medium-gray); }
+        .tab-button {
+            flex: 1; padding: 12px 10px; border: none; background-color: transparent;
+            cursor: pointer; font-size: 0.9em; font-weight: 500; color: var(--dark-gray);
+            border-bottom: 3px solid transparent;
+        }
+        .tab-button.active.bad { color: var(--danger-color); border-bottom-color: var(--danger-color); }
+        .tab-button.active.good { color: var(--success-color); border-bottom-color: var(--success-color); }
+        
+        .app-content { flex-grow: 1; padding: 20px; background-color: var(--light-gray); }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+
+        /* --- Estilos do App --- */
+        .trip-summary {
+            background-color: #fff; padding: 20px;
+            border-radius: 10px; border: 1px solid var(--medium-gray);
+        }
+        .trip-summary .map {
+            height: 120px; background-color: #e0f3f8; border-radius: 8px;
+            margin-bottom: 15px; text-align: center; padding-top: 40px;
+            font-weight: 500; color: #555;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M50,0 C22.4,0 0,22.4 0,50 C0,77.6 22.4,100 50,100 C77.6,100 100,77.6 100,50 C100,22.4 77.6,0 50,0 Z M50,88 C29,88 12,71 12,50 C12,29 29,12 50,12 C71,12 88,29 88,50 C88,71 71,88 50,88 Z" fill="%23a0a0a0" opacity="0.1"/><path d="M50,20 C33.4,20 20,33.4 20,50 C20,66.6 33.4,80 50,80 C66.6,80 80,66.6 80,50 C80,33.4 66.6,20 50,20 Z M50,70 C38.9,70 30,61.1 30,50 C30,38.9 38.9,30 50,30 C61.1,30 70,38.9 70,50 C70,61.1 61.1,70 50,70 Z" fill="%23a0a0a0" opacity="0.1"/></svg>');
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        .trip-details {
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .trip-details h3 { margin: 0; font-size: 1.5em; }
+        .trip-details span { font-weight: 500; }
+
+        .data-flow {
+            margin-top: 20px; background-color: #fff; padding: 15px;
+            border-radius: 10px; border: 1px solid var(--medium-gray);
+        }
+        .data-flow h4 { margin-top: 0; text-align: center; }
+        .flow-item {
+            display: flex; align-items: center; margin-bottom: 10px;
+            font-family: 'Inconsolata', monospace; font-size: 0.9em;
+        }
+        .flow-item .target { font-weight: bold; width: 150px; }
+        .flow-item .data-packet {
+            background-color: var(--light-gray); padding: 5px 8px;
+            border-radius: 4px; flex: 1; word-break: break-all;
+        }
+        .data-packet.secure { color: var(--success-color); }
+        .data-packet.insecure-privacy { color: var(--danger-color); }
+        
+        /* Estilos do App Bom */
+        .settings-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px; background-color: #fff; border-radius: 10px;
+            border: 1px solid var(--medium-gray);
+        }
+        .settings-item .text strong { display: block; }
+        .settings-item .text span { font-size: 0.9em; color: var(--dark-gray); }
+        .toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .toggle-switch input { display: none; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--success-color); }
+        input:checked + .slider:before { transform: translateX(20px); }
+        
+        .annotation { padding: 12px; margin-top: 25px; font-size: 0.85em; border-radius: 5px; line-height: 1.5; }
+        .annotation.bad { background-color: #f8d7da; border-left: 4px solid var(--danger-color); }
+        .annotation.good { background-color: #d4edda; border-left: 4px solid var(--success-color); }
+    </style>
+</head>
+<body>
+
+    <div class="phone-frame">
+        <div class="screen">
+            <header class="app-header">GoFast</header>
+            
+            <div class="tabs">
+                <button class="tab-button active bad" onclick="showTab('bad-ux')">Exemplo Ruim</button>
+                <button class="tab-button good" onclick="showTab('good-ux')">Exemplo Bom</button>
+            </div>
+
+            <main class="app-content">
+
+                <div id="bad-ux" class="content-section active">
+                    <div class="trip-summary">
+                        <div class="map">-- Rota da Viagem --</div>
+                        <div class="trip-details">
+                            <span>Viagem Concluída</span>
+                            <h3>R$ 25,00</h3>
+                        </div>
+                    </div>
+                    <div class="data-flow">
+                        <h4>O que acontece com seus dados...</h4>
+                        <div class="flow-item">
+                            <span class="target">→ Servidor GoFast:</span>
+                            <span class="data-packet secure">[data: #$sD5^f*]</span>
+                        </div>
+                        <div class="flow-item">
+                            <span class="target">→ AdCorp Mkt:</span>
+                            <span class="data-packet insecure-privacy">[orig:Casa dest:Trab R$25]</span>
+                        </div>
+                    </div>
+                    <div class="annotation bad">
+                        <strong>Ponto de Análise (Violação de Finalidade):</strong> A viagem é enviada de forma segura para os servidores do app (OK). No entanto, os detalhes da viagem (rota, preço, horário) também são enviados a uma empresa de marketing **sem o consentimento explícito do usuário**. Isso viola a privacidade, pois os dados são usados para um fim diferente daquele para o qual foram coletados.
+                    </div>
+                </div>
+
+                <div id="good-ux" class="content-section">
+                    <h4>Configurações de Privacidade</h4>
+                    <div class="settings-item">
+                        <div class="text">
+                            <strong>Ofertas de parceiros</strong>
+                            <span>Compartilhar dados anônimos de viagem para receber promoções.</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="annotation good">
+                        <strong>Ponto de Análise (Consentimento e Controle):</strong> O compartilhamento de dados para fins de marketing é uma opção **desativada por padrão**. O usuário é informado de forma transparente sobre o que será compartilhado e para qual finalidade, e deve realizar uma ação positiva ("opt-in") para autorizar. Isso dá ao usuário controle total sobre seus dados.
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.tab-button[onclick*="'${tabId}'"]`).classList.add('active');
+            
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            
+            const header = document.querySelector('.app-header');
+            header.textContent = tabId === 'bad-ux' ? 'GoFast' : 'PrivacyRide';
+        }
+        
+        showTab('bad-ux'); // Inicia na primeira aba
+    </script>
+</body>
+</html>
